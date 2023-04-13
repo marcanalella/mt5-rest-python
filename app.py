@@ -41,7 +41,7 @@ def signal():
         close_position(pair)
         open_position(pair, action, constants.size, 50, 100)
 
-    return {"error": "Time not to trading"}, 200
+    return {"error": "Time not to trading"}, 201
 
 
 def open_position(pair, order_type, size, tp_distance=None, stop_distance=None):
@@ -97,7 +97,7 @@ def open_position(pair, order_type, size, tp_distance=None, stop_distance=None):
         return {"error": "Failed to send order :( "}, 500
     else:
         print("Order successfully placed!")
-        return {"error": "Order successfully placed! "}, 200
+        return {"success": "Order successfully placed! "}, 201
 
 
 def close_position(pair):
@@ -138,7 +138,7 @@ def close_position(pair):
                 return {"error": "Failed to close order :( "}, 500
             else:
                 print("Order successfully closed!")
-                return {"error": "Order successfully closed! "}, 200
+                return {"success": "Order successfully closed! "}, 201
 
 
 if __name__ == '__main__':
