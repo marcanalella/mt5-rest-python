@@ -16,7 +16,7 @@ Request
 $ curl --header "Content-Type: application/json" \
   --request POST \
   --data '{"pair":"EURUSD","action":"BUY"}' \
-  http://localhost:3000/api/login
+  http://localhost:5000/signal
 ```
 
 Response
