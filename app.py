@@ -1,8 +1,8 @@
 # pip install MetaTrader5
 # pip install --upgrade MetaTrader5
 import MetaTrader5 as mt5
-import datetime as dt
 from flask import Flask, request
+import pandas as pd
 
 import constants
 
@@ -19,32 +19,37 @@ def signal():
     pair = signal["pair"]
     action = signal["action"]
 
-    now = dt.datetime.now()
-    if constants.startTimeTrading <= now.hour < constants.endTimeTrading:
-        if not mt5.initialize(constants.path):
-            print("initialize() failed")
-            mt5.shutdown()
-            return {"error": "MT5 Terminal initialize() failed"}, 500
+    if not mt5.initialize(constants.path):
+        print("initialize() failed")
+        mt5.shutdown()
+        return {"error": "MT5 Terminal initialize() failed"}, 500
 
-        if mt5.login(constants.login, constants.password, constants.server):
-            print("logged in succesffully")
-        else:
-            print("login failed, error code: {}".format(mt5.last_error()))
-            return {"error": "login failed"}, 500
+    if mt5.login(constants.login, constants.password, constants.server):
+        print("logged in succesffully")
+        account_info_dict = mt5.account_info()._asdict()
+        account_info_df = pd.DataFrame(account_info_dict, index=[0])
+        print("Profit:", account_info_df["profit"].iloc[0])
+        print("Equity:", account_info_df["equity"].iloc[0])
+        print("Margin:", account_info_df["margin"].iloc[0])
+        print("Margin Free:", account_info_df["margin_free"].iloc[0])
 
 
-        # request connection status and parameters
-        print(mt5.terminal_info())
-        # get data on MetaTrader 5 version
-        print(mt5.version())
+    else:
+        print("login failed, error code: {}".format(mt5.last_error()))
+        return {"error": "login failed"}, 500
 
-        close_position(pair)
-        open_position(pair, action, constants.size, 50, 100)
+    # request connection status and parameters
+    print(mt5.terminal_info())
+    # get data on MetaTrader 5 version
+    print(mt5.version())
 
-    return {"error": "Time not to trading"}, 201
+    close_position(pair)
+    open_position(pair, action, constants.size, 50, 100)
+    return None
 
 
 def open_position(pair, order_type, size, tp_distance=None, stop_distance=None):
+    global order, price, sl, tp
     symbol_info = mt5.symbol_info(pair)
     if symbol_info is None:
         print(pair, "not found")
@@ -104,6 +109,7 @@ def close_position(pair):
     open_positions = mt5.positions_get(symbol=pair)
     if open_positions is None:
         print("No positions on pair selected, error code={}".format(mt5.last_error()))
+        return None
     elif len(open_positions) > 0:
         open_positions = open_positions[open_positions['magic'] == ea_magic_number]
         for open_position in open_positions:
@@ -139,6 +145,8 @@ def close_position(pair):
             else:
                 print("Order successfully closed!")
                 return {"success": "Order successfully closed! "}, 201
+        return None
+    return None
 
 
 if __name__ == '__main__':
