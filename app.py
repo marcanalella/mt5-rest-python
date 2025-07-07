@@ -43,7 +43,6 @@ def signal():
     # get data on MetaTrader 5 version
     print(mt5.version())
 
-    close_position(pair)
     open_position(pair, action, constants.size, 50, 100)
     return None
 
@@ -103,50 +102,6 @@ def open_position(pair, order_type, size, tp_distance=None, stop_distance=None):
     else:
         print("Order successfully placed!")
         return {"success": "Order successfully placed! "}, 201
-
-
-def close_position(pair):
-    open_positions = mt5.positions_get(symbol=pair)
-    if open_positions is None:
-        print("No positions on pair selected, error code={}".format(mt5.last_error()))
-        return None
-    elif len(open_positions) > 0:
-        open_positions = open_positions[open_positions['magic'] == ea_magic_number]
-        for open_position in open_positions:
-            order_type = open_position["type"]
-            symbol = open_positions['symbol']
-            volume = open_positions['volume']
-
-            if order_type == mt5.ORDER_TYPE_BUY:
-                order_type = mt5.ORDER_TYPE_SELL
-                price = mt5.symbol_info_tick(symbol).bid
-            else:
-                order_type = mt5.ORDER_TYPE_BUY
-                price = mt5.symbol_info_tick(symbol).ask
-
-            close_request = {
-                "action": mt5.TRADE_ACTION_DEAL,
-                "symbol": symbol,
-                "volume": float(volume),
-                "type": order_type,
-                "position": open_position['ticket'],
-                "price": price,
-                "magic": ea_magic_number,
-                "comment": "Close trade",
-                "type_time": mt5.ORDER_TIME_GTC,
-                "type_filling": mt5.ORDER_FILLING_IOC,
-            }
-
-            result = mt5.order_send(close_request)
-
-            if result.retcode != mt5.TRADE_RETCODE_DONE:
-                print("Failed to close order :(")
-                return {"error": "Failed to close order :( "}, 500
-            else:
-                print("Order successfully closed!")
-                return {"success": "Order successfully closed! "}, 201
-        return None
-    return None
 
 
 if __name__ == '__main__':
