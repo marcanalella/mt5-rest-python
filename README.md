@@ -6,7 +6,7 @@ Open / close a trade using the MT5 API with Python and API REST, so it can recev
 
 Expose API REST `/signal` where we can alert our program to open a trade.
 
-It will check the time and if there are open trades. It will cose all of them and open a new one. You can modify json to pass more parameters like volume, stop loss and many many more.
+You can modify the request to pass more parameters like volume, stop loss and many many more.
 
 ## Example of usage
 
